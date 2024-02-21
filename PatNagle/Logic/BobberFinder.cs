@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
-using System.Security.Policy;
 using System.Threading;
 using PatNagle.Logic.Image;
 using PatNagle.Logic.Utils;
@@ -11,20 +10,18 @@ namespace PatNagle.Logic;
 
 internal class BobberFinder
 {
-    private readonly ScreenRegion _r;
-    private readonly Action<int, int> _foundDelegate;
-    private readonly Action<int> _caughtDelegate;
-    private readonly Action _castDelegate;
-    private Thread _runner;
-    private CancellationTokenSource _cts;
+    private readonly AppSettings _settings;
+    private readonly BobberActions _actions;
+    private readonly MainFormContext _context;
+    private Thread? _runner;
+    private CancellationTokenSource? _cts;
     private readonly Color _targetColor = Color.FromArgb(255, 125, 64, 31);
 
-    public BobberFinder(ScreenRegion r, Action<int, int> foundDelegate, Action<int> caughtDelegate, Action castDelegate)
+    public BobberFinder(AppSettings settings, BobberActions actions, MainFormContext context)
     {
-        _r = r;
-        _foundDelegate = foundDelegate;
-        _caughtDelegate = caughtDelegate;
-        _castDelegate = castDelegate;
+        _settings = settings;
+        _actions = actions;
+        _context = context;
     }
 
     public bool Done { get; private set; }
@@ -32,7 +29,7 @@ internal class BobberFinder
     public void Start()
     {
         _cts = new CancellationTokenSource();
-        var ts = new ThreadStart(() => Finder(_r, _foundDelegate, _caughtDelegate, _castDelegate, _cts.Token));
+        var ts = new ThreadStart(() => Finder(_settings, _actions, _context, _cts.Token));
         _runner = new Thread(ts);
         _runner.Start();
     }
@@ -40,16 +37,17 @@ internal class BobberFinder
     public void Stop()
     {
         Done = true;
-        _cts.Cancel();
+        _cts?.Cancel();
     }
 
-    private void Finder(ScreenRegion region, Action<int, int> foundDelegate, Action<int> caughtDelegate, Action castDelegate, CancellationToken ctsToken)
+    private void Finder(AppSettings settings,
+                        BobberActions actions,
+                        MainFormContext context,
+                        CancellationToken ctsToken)
     {
         try
         {
-            int firstPosX = -1;
-            int firstPosY = -1;
-            int sleep = 33;
+            var sleep = 33;
             var allProcesses = Process.GetProcesses();
             Process? wowProcess = null;
             foreach (var p in allProcesses)
@@ -68,37 +66,51 @@ internal class BobberFinder
                 return;
             }
 
-            AppScreen.SaveSelectedRegion(region);
+            AppScreen.SaveSelectedRegion(settings.Region);
             var found = false;
             (int x, int y) pos = (0, 0);
-            DateTime firstStamp = DateTime.Now;
+            var firstStamp = DateTime.Now;
+            var offset = settings.BobberZoneRange;
+            var casts = 0;
+            var hooks = 0;
+            var fails = 0;
             while (!ctsToken.IsCancellationRequested)
             {
-                using (var db = AppScreen.GetSelectedRegion(region))
+                using (var db = AppScreen.GetSelectedRegion(settings.Region))
                 {
                     var dot = found ?
-                        FindRedDot(db, Math.Max(pos.x - 20, 0), Math.Max(pos.y - 20, 0), Math.Min(pos.x + 20, db.Width), Math.Min(pos.y + 20, db.Height)) :
-                        FindRedDot(db, 0, 0, db.Width, db.Height);
+                        GetAverageRedColorPosition(db, offset, pos.x, pos.y) :
+                        FindFirstRedDot(db, offset);
                     if (dot.found)
                     {
                         if (!found)
                         {
                             found = true;
                             pos = dot.pos;
-                            foundDelegate(pos.x, pos.y);
+                            actions.FoundDelegate(pos.x, pos.y);
                             firstStamp = DateTime.Now;
+                            context.BobberLocation = $"x: {pos.x} y: {pos.y}";
+                            context.Items.Add(0);
                         }
                         else
                         {
                             var distX = dot.pos.x - pos.x;
                             var distY = dot.pos.y - pos.y;
                             var dist = Math.Sqrt(distX * distX + distY * distY);
-                            if (dist > 20)
+                            context.FishingStatus = "Waiting...";
+                            context.Items.Add(-(int)dist);
+                            if (dist > _settings.BobberDiveThreshold)
                             {
-                                caughtDelegate((int)dist);
+                                actions.CaughtDelegate((int)dist);
+                                context.FishingStatus = "Hooked!";
+                                hooks++;
+                                this.UpdateStats(context, casts, hooks, fails);
                                 Thread.Sleep(3000);
                                 found = false;
-                                castDelegate();
+                                actions.CastDelegate();
+                                context.FishingStatus = "Casting...";
+                                context.BobberLocation = "???";
+                                casts++;
                             }
                         }
                     }
@@ -107,7 +119,11 @@ internal class BobberFinder
                     {
                         found = false;
                         firstStamp = DateTime.Now;
-                        castDelegate();
+                        actions.CastDelegate();
+                        context.FishingStatus = "Re-Casting...";
+                        context.BobberLocation = "???";
+                        fails++;
+                        casts++;
                     }
                 }
                 Thread.Sleep(sleep);
@@ -120,18 +136,72 @@ internal class BobberFinder
         }
     }
 
-    private (bool found, (int x, int y) pos) FindRedDot(
-                           DirectBitmap db,
-                           int startX, int startY,
-                           int maxX, int maxY)
+    private void UpdateStats(MainFormContext context, int casts, int hooks, int fails)
     {
-        for (var i = startX; i < maxX; i++)
+        context.UpdateStats(casts, hooks, fails);
+    }
+
+    private (bool found, (int x, int y) pos) FindFirstRedDot(DirectBitmap db, int offset)
+    {
+        for (var i = 0; i < db.Width; i++)
         {
-            for (int j = startY; j < maxY; j++)
+            for (var j = 0; j < db.Height; j++)
             {
                 var color = db.GetPixel(i, j);
                 var diff = color.GetDiff(_targetColor);
-                if (diff < 100)
+                if (diff < _settings.ColorMaxDistance)
+                {
+                    return GetAverageRedColorPosition(db, offset, i, j);
+                }
+            }
+        }
+
+        return (false, (0, 0));
+    }
+
+    private (bool found, (int x, int y) pos) GetAverageRedColorPosition(DirectBitmap db, int offset, int x, int y)
+    {
+        var dotsFound = 0;
+        var xSum = 0;
+        var ySum = 0;
+        for (var i = x - offset; i < x + offset; i++)
+        {
+            // checking twice the offset to get a better average in case of bobber diving
+            for (var j = y - 2 * offset; j < y + offset; j++)
+            {
+                var color = db.GetPixel(x, y);
+                var diff = color.GetDiff(_targetColor);
+                if (diff < _settings.ColorMaxDistance)
+                {
+                    dotsFound++;
+                    xSum += i;
+                    ySum += j;
+                }
+            }
+        }
+
+        if (dotsFound == 0)
+        {
+            return (false, (0, 0));
+        }
+        return (true, (xSum / dotsFound, ySum / dotsFound));
+    }
+
+    private (bool found, (int x, int y) pos) FindRedDot(DirectBitmap db,
+                                                        int startX,
+                                                        int startY,
+                                                        int maxX,
+                                                        int maxY,
+                                                        int offset,
+                                                        bool found)
+    {
+        for (var i = startX; i < maxX; i++)
+        {
+            for (var j = startY; j < maxY; j++)
+            {
+                var color = db.GetPixel(i, j);
+                var diff = color.GetDiff(_targetColor);
+                if (diff < _settings.ColorMaxDistance)
                 {
                     return (true, (i, j));
                 }
@@ -140,4 +210,31 @@ internal class BobberFinder
 
         return (false, (0, 0));
     }
+
+
+    private (bool found, (int x, int y) pos) FindAverageRedDotPosition(DirectBitmap db,
+                                                        int startX,
+                                                        int startY,
+                                                        int maxX,
+                                                        int maxY,
+                                                        int offset,
+                                                        bool found)
+    {
+        for (var i = startX; i < maxX; i++)
+        {
+            for (var j = startY; j < maxY; j++)
+            {
+                var color = db.GetPixel(i, j);
+                var diff = color.GetDiff(_targetColor);
+                if (diff < _settings.ColorMaxDistance)
+                {
+                    return (true, (i, j));
+                }
+            }
+        }
+
+        return (false, (0, 0));
+    }
+
+
 }

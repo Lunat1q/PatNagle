@@ -5,21 +5,36 @@
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:local="clr-namespace:PatNagle"
                  xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+                 xmlns:wpf="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
                  mc:Ignorable="d"
-                 Title="MainWindow" Height="450" Width="800" Closing="MetroWindow_Closing">
+                 Title="Pat Nagle Wonder Lure" Height="550" Width="400" Closing="MetroWindow_Closing"
+                 d:DataContext="{local:MainFormContext}">
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Button Grid.Row="1" Content="Region selector" Height="30px" Click="Button_Click"/>
-        <Button Grid.Row="2" Content="Run" Height="30px" Click="Button2_Click"/>
-        <StackPanel Grid.Row="3">
-            <TextBox Name="Found" Text="-"/>
-            <TextBox Name="Caught" Text="-"/>
-            <TextBox Name="Casting" Text="-"/>
-        </StackPanel>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{Binding BobberLocation, StringFormat=Bobber Position: {0}}" HorizontalAlignment="Center"/>
+            <TextBlock Grid.Column="1" Text="{Binding FishingStatus, StringFormat=Status: {0}}" HorizontalAlignment="Center"/>
+            <TextBlock Grid.Column="2" Text="{Binding Stats}" HorizontalAlignment="Center"/>
+        </Grid>
+        <wpf:CartesianChart Grid.Row="1" Name="Chart"
+                            Series="{Binding Series}" 
+                            Sections="{Binding Sections}"
+                            TooltipPosition="Hidden">
+        </wpf:CartesianChart>
+        <Button Grid.Row="2" Content="Region selector" Height="30px" Click="Button_Click"/>
+        <Button Grid.Row="3" Content="Settings" Height="30px" Click="Button3_Click"/>
+        <Button Grid.Row="4" Content="Run" Height="30px" Click="Button2_Click"/>
     </Grid>
 </mah:MetroWindow>

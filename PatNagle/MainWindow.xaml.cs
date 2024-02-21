@@ -1,12 +1,14 @@
 ﻿using System;
-using System.Drawing.Imaging;
+using System.Linq;
+using System.Windows;
+using LiveChartsCore.SkiaSharpView;
 using MahApps.Metro.Controls;
 using PatNagle.Logic;
 using PatNagle.Logic.Control;
-using PatNagle.Logic.Image;
 using PatNagle.Logic.Utils;
 using PatNagle.UI;
 using PatNagle.User;
+using TiqUtils.Wpf.UIBuilders;
 
 namespace PatNagle
 {
@@ -17,77 +19,88 @@ namespace PatNagle
     {
         private BobberFinder? _bobberF;
         private IntPtr _wowWindow;
+        private readonly MainFormContext _context;
 
         public MainWindow()
         {
+            _context = new MainFormContext();
+            this.DataContext = _context;
             InitializeComponent();
+            Chart.XAxes = new[]
+            {
+                new Axis
+                {
+                    IsVisible = false
+                }
+            };
+            this.UpdateChart();
         }
 
-        private void Button_Click(object sender, System.Windows.RoutedEventArgs e)
+        private void Button_Click(object sender, RoutedEventArgs e)
         {
             var selector = new RegionSelector();
             selector.ShowDialog();
         }
 
-        private void Button2_Click(object sender, System.Windows.RoutedEventArgs e)
+        private void Button2_Click(object sender, RoutedEventArgs e)
         {
             if (_bobberF == null || _bobberF.Done)
             {
-                _bobberF = new BobberFinder(AppSettings.Instance.Region!, FoundDelegate, CaughtDelegate, CastDelegate);
+                var bobberActions = new BobberActions(FoundDelegate, CaughtDelegate, CastDelegate);
+                _bobberF = new BobberFinder(AppSettings.Instance, bobberActions, _context);
                 _bobberF.Start();
                 _wowWindow = AppHelper.FindWowWindow();
             }
             else
             {
                 _bobberF.Stop();
-                this.Dispatcher.Invoke(() =>
-                {
-                    Caught.Text = "-";
-                    Found.Text = "-";
-                });
             }
         }
 
         private void CastDelegate()
         {
             KeyboardControl.SimulateFPress();
-            this.Dispatcher.Invoke(() =>
-            {
-                Casting.Text = $"CASTING!";
-                Caught.Text = "-";
-                Found.Text = "-";
-            });
         }
 
         private void CaughtDelegate(int dist)
         {
             this.Dispatcher.Invoke(() =>
             {
-                Caught.Text = $"CAUGHT! {dist}";
-                MouseControl.RightClick(_wowWindow, _curMouseX, _curMouseY);
+                MouseControl.RightClick(_wowWindow, _context.CurMouseX, _context.CurMouseY);
             });
         }
-
-        private int _curMouseX;
-        private int _curMouseY;
         
 
         private void FoundDelegate(int x, int y)
         {
             this.Dispatcher.Invoke(() =>
             {
-                Found.Text = $"FOUND AT X:{x} Y:{y}!";
-
                 var appPos = AppScreen.FromRegionToScreenPosition(x, y);
-                _curMouseX = appPos.x + 55;
-                _curMouseY = appPos.y + 15;
-                MouseControl.SetCursorPos(_curMouseX, _curMouseY);
+                _context.CurMouseX = appPos.x + AppSettings.Instance.MouseHookXOffset;
+                _context.CurMouseY = appPos.y + AppSettings.Instance.MouseHookYOffset;
+                MouseControl.SetCursorPos(_context.CurMouseX, _context.CurMouseY);
             });
         }
 
         private void MetroWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             _bobberF?.Stop();
+        }
+
+        private void UpdateChart()
+        {
+            _context.UpdateSections();
+            var cartesianAxis = Chart.YAxes.First();
+            cartesianAxis.MinLimit = -AppSettings.Instance.BobberDiveThreshold - 5;
+            cartesianAxis.MaxLimit = 0;
+        }
+
+        private void Button3_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = AppSettings.Instance.CreateAutoUISettingsDialog();
+            dialog.ShowDialog();
+            this.UpdateChart();
+            AppSettings.Save();
         }
     }
 }
