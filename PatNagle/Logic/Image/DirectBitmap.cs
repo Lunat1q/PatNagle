@@ -15,11 +15,7 @@ namespace PatNagle.Logic.Image
         public int Width { get; }
 
         protected GCHandle BitsHandle { get; }
-
-        public float GetMeaningfulPixelsCoefficient => (float)this.PixelsWithData / (this.Height * this.Width);
-
-        internal int PixelsWithData { get; set; }
-
+        
         public DirectBitmap(int width, int height)
         {
             this.Width = width;

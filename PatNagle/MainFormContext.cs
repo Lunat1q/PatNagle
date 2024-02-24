@@ -1,55 +1,39 @@
-﻿using LiveChartsCore.SkiaSharpView.Painting;
-using LiveChartsCore.SkiaSharpView;
-using LiveChartsCore;
-using SkiaSharp;
+﻿using System;
 using System.Collections.ObjectModel;
-using TiqUtils.Wpf.AbstractClasses;
+using System.Windows.Threading;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.Painting.Effects;
 using PatNagle.User;
+using SkiaSharp;
+using TiqUtils.Wpf.AbstractClasses;
 
 namespace PatNagle;
 
 internal class MainFormContext : Notified
 {
-    private string _bobberLocation = "???";
+    private readonly Dispatcher _dispatcher;
     private string _fishingStatus = "Unknown";
+    private bool _running;
+    private RectangularSection[] _sections = Array.Empty<RectangularSection>();
     private string _stats = "Not run";
-    private ObservableCollection<int> _items = new();
-    private RectangularSection[] _sections;
 
-    public ISeries[] Series { get; set; }
-    
-    public MainFormContext()
+    public MainFormContext(Dispatcher dispatcher)
     {
+        _dispatcher = dispatcher;
         Series = new ISeries[]
         {
             new LineSeries<int>
             {
-                Values = _items,
+                Values = Items,
                 GeometryStroke = null,
-            }
-        };
-
-        
-    }
-
-    public void UpdateSections()
-    {
-        Sections = new[]
-        {
-            new RectangularSection
-            {
-                Yi = -AppSettings.Instance.BobberDiveThreshold,
-                Yj = -AppSettings.Instance.BobberDiveThreshold,
-                Stroke = new SolidColorPaint
-                {
-                    Color = SKColors.Red,
-                    StrokeThickness = 3,
-                    PathEffect = new DashEffect(new float[] { 6, 6 })
-                }
+                GeometryFill = null
             }
         };
     }
+
+    public ISeries[] Series { get; set; }
 
     public RectangularSection[] Sections
     {
@@ -66,31 +50,22 @@ internal class MainFormContext : Notified
         }
     }
 
-
-    public ObservableCollection<int> Items
-    {
-        get => _items;
-        set
-        {
-            _items = value;
-            OnPropertyChanged();
-        }
-    }
+    private ObservableCollection<int> Items { get; } = new();
 
     public int CurMouseX { get; set; }
     public int CurMouseY { get; set; }
 
-    public string BobberLocation
+    public bool Running
     {
-        get => _bobberLocation;
+        get => _running;
         set
         {
-            if (value == _bobberLocation)
+            if (value == _running)
             {
                 return;
             }
 
-            _bobberLocation = value;
+            _running = value;
             OnPropertyChanged();
         }
     }
@@ -125,8 +100,43 @@ internal class MainFormContext : Notified
         }
     }
 
+    public void AddDistance(int distance)
+    {
+        _dispatcher.Invoke(() =>
+        {
+            Items.Add(distance);
+        });
+    }
+
+    public void UpdateSections()
+    {
+        Sections = new[]
+        {
+            new RectangularSection
+            {
+                Yi = -AppSettings.Instance.BobberDiveThreshold,
+                Yj = -AppSettings.Instance.BobberDiveThreshold,
+                Stroke = new SolidColorPaint
+                {
+                    Color = SKColors.Red,
+                    StrokeThickness = 3,
+                    PathEffect = new DashEffect(new float[] { 6, 6 })
+                }
+            }
+        };
+    }
+
     public void UpdateStats(int casts, int hooks, int fails)
     {
-        this.Stats = $"C:{casts}/H:{hooks}/F:{fails}";
+        Stats = $"C:{casts}/H:{hooks}/F:{fails}";
+    }
+
+    public void ClearAllDistance()
+    {
+        _dispatcher.Invoke(() =>
+        {
+            Items.Clear();
+            OnPropertyChanged(nameof(Series));
+        });
     }
 }

@@ -1,31 +1,32 @@
 ﻿using System.Runtime.InteropServices;
 using System;
+using System.Windows.Input;
 
 namespace PatNagle.Logic.Control;
 
 public class KeyboardControl
 {
     [DllImport("user32.dll", SetLastError = true)]
-    public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, IntPtr dwExtraInfo);
+    private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, IntPtr dwExtraInfo);
 
-    public const int KEYEVENTF_KEYDOWN = 0x0001;
-    public const int KEYEVENTF_KEYUP = 0x0002;
+    private const int KeyEventKeydown = 0x0001;
+    private const int KeyEventKeyup = 0x0002;
 
     public static void SimulateKeyPress(byte virtualKeyCode)
     {
-        keybd_event(virtualKeyCode, 0, KEYEVENTF_KEYDOWN, IntPtr.Zero);
+        keybd_event(virtualKeyCode, 0, KeyEventKeydown, IntPtr.Zero);
     }
 
     public static void SimulateKeyRelease(byte virtualKeyCode)
     {
-        keybd_event(virtualKeyCode, 0, KEYEVENTF_KEYUP, IntPtr.Zero);
+        keybd_event(virtualKeyCode, 0, KeyEventKeyup, IntPtr.Zero);
     }
 
-    public static void SimulateFPress()
+    public static void SimulatePress(Key instanceCastKey)
     {
-        // Simulate pressing and releasing the 'B' key with a delay in between
-        SimulateKeyPress(0x46); // 'F' key
-        System.Threading.Thread.Sleep(MouseControl.GetRandomDelay(300)); // 1 second delay
-        SimulateKeyRelease(0x46); // Release 'F' key
+        var vk = (byte)KeyInterop.VirtualKeyFromKey(instanceCastKey);
+        SimulateKeyPress(vk); // Press key
+        System.Threading.Thread.Sleep(MouseControl.GetRandomDelay(300)); // some delay
+        SimulateKeyRelease(vk); // Release key
     }
 }

@@ -35,6 +35,7 @@ namespace PatNagle.Logic.Control
         {
             return (hiWord << 16) | (loWord & 0xFFFF);
         }
+        
         public static int GetRandomDelay(int baseDelay = 80)
         {
             return baseDelay + Rnd.Next(-1 * baseDelay / 5, baseDelay / 3);
