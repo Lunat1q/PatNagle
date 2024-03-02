@@ -6,7 +6,13 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <ApplicationIcon>PatNagle.ico</ApplicationIcon>
+    <PackageIcon>PatNagle.ico</PackageIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="PatNagle.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.0.0-rc2" />
@@ -25,10 +31,18 @@
   </ItemGroup>
 
   <ItemGroup>
+	<Resource Include="PatNagle.ico"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Settings1.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings1.Designer.cs</LastGenOutput>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Resources\" />
   </ItemGroup>
 
 </Project>

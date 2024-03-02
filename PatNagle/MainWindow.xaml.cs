@@ -1,16 +1,15 @@
-﻿using System;
-using System.ComponentModel;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Input;
-using LiveChartsCore.SkiaSharpView;
-using MahApps.Metro.Controls;
+﻿using LiveChartsCore.SkiaSharpView;
 using PatNagle.Logic;
 using PatNagle.Logic.Control;
 using PatNagle.Logic.Utils;
 using PatNagle.UI;
 using PatNagle.User;
+using System;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Windows;
+using System.Windows.Input;
 using TiqUtils.Wpf.UIBuilders;
 
 namespace PatNagle;
@@ -18,10 +17,10 @@ namespace PatNagle;
 /// <summary>
 ///     Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : MetroWindow
+public partial class MainWindow
 {
     private readonly MainFormContext _context;
-    private BobberFinder? _bobberF;
+    private BobberFinder _bobberF;
     private IntPtr _wowWindow;
     private HotKeyManager? _hotKeyMgr;
 
@@ -38,6 +37,7 @@ public partial class MainWindow : MetroWindow
             }
         };
         UpdateChart();
+        InitBobber();
     }
 
     private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
@@ -87,13 +87,15 @@ public partial class MainWindow : MetroWindow
         RunToggle();
     }
 
+    [MemberNotNull(nameof(_bobberF))]
+    private void InitBobber()
+    {
+        var bobberActions = new BobberActions(FoundDelegate, HookDelegate, CastDelegate);
+        _bobberF = new BobberFinder(AppSettings.Instance, bobberActions, _context);
+    }
+
     private void RunToggle()
     {
-        if (_bobberF == null)
-        {
-            var bobberActions = new BobberActions(FoundDelegate, HookDelegate, CastDelegate);
-            _bobberF = new BobberFinder(AppSettings.Instance, bobberActions, _context);
-        }
 
         if (!_context.Running)
         {
@@ -133,7 +135,7 @@ public partial class MainWindow : MetroWindow
 
     private void MetroWindow_Closing(object sender, CancelEventArgs e)
     {
-        _bobberF?.Stop();
+        _bobberF.Stop();
         _hotKeyMgr?.Dispose();
     }
 
@@ -155,9 +157,6 @@ public partial class MainWindow : MetroWindow
 
     private void Debug_Click(object sender, RoutedEventArgs e)
     {
-        if (_bobberF != null)
-        {
-            new DebugVision(_bobberF).Show();
-        }
+        new DebugVision(_bobberF).Show();
     }
 }

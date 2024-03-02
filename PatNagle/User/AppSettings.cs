@@ -16,7 +16,7 @@ namespace PatNagle.User
         public ScreenRegion Region { get; set; }
 
         [PropertyMember]
-        [SliderLimits(5, 50, 1, 1, 1)]
+        [SliderLimits(5, 100, 1, 1, 1)]
         public int BobberZoneRange { get; set; } = 20;
 
         [PropertyMember]
@@ -32,7 +32,7 @@ namespace PatNagle.User
         public int MouseHookYOffset { get; set; } = 15;
         
         [PropertyMember]
-        [SliderLimits(20, 800, 1, 1, 1)]
+        [SliderLimits(20, 5000, 1, 1, 1)]
         public int ColorMaxDistance { get; set; } = 200;
         
         [PropertyMember]

@@ -97,7 +97,7 @@ internal class BobberFinder
                 {
                     OnPictureChanged(db.Bitmap);
                     var dot = found
-                        ? GetAverageRedColorPosition(db, offset, pos.x, pos.y)
+                        ? GetAverageRedColorPosition(db, offset, pos.x, pos.y, DebugIsOn)
                         : FindFirstRedDot(db, offset);
                     if (dot.found)
                     {
@@ -112,7 +112,7 @@ internal class BobberFinder
                         }
                         else
                         {
-                            var dist = CalculateDistance(dot, pos);
+                            var dist = CalculateYDistance(dot, pos);
                             context.FishingStatus = "Waiting...";
                             var posRecorder = 5 + 50 / settings.ThreadSleepTime;
                             if (iteration % posRecorder == 0)
@@ -142,6 +142,7 @@ internal class BobberFinder
                                 actions.CastDelegate();
                                 context.FishingStatus = "Casting...";
                                 this.OnBobberFound("???");
+                                Thread.Sleep(MouseControl.GetRandomDelay(2500));
                                 casts++;
                                 iteration = 0;
                             }
@@ -159,6 +160,7 @@ internal class BobberFinder
                         actions.CastDelegate();
                         context.FishingStatus = "Re-Casting...";
                         this.OnBobberFound("???");
+                        Thread.Sleep(MouseControl.GetRandomDelay(2500));
                         fails++;
                         casts++;
                         iteration = 0;
@@ -181,12 +183,20 @@ internal class BobberFinder
         }
     }
 
-    private static double CalculateDistance((bool found, (int x, int y) pos) dot, (int x, int y) pos)
+    private static double CalculateYDistance((bool found, (int x, int y) pos) dot, (int x, int y) pos)
     {
         //var distX = dot.pos.x - pos.x;
         var distY = Math.Abs(dot.pos.y - pos.y);
         //var dist = Math.Sqrt(distX * distX + distY * distY);
         return distY;
+    }
+    
+    private static double CalculateFullDistance((int x, int y) pos1, (int x, int y) pos2)
+    {
+        var distX = pos1.x - pos2.x;
+        var distY = pos1.y - pos2.y;
+        var dist = Math.Sqrt(distX * distX + distY * distY);
+        return dist;
     }
 
     private void UpdateStats(MainFormContext context, int casts, int hooks, int fails)
@@ -204,7 +214,9 @@ internal class BobberFinder
                 var diff = color.GetDiff(_targetColor);
                 if (diff < _settings.ColorMaxDistance)
                 {
-                    return GetAverageRedColorPosition(db, offset, i, j);
+
+                    return GetAverageRedColorPosition(db, offset, i, j, DebugIsOn);
+                    //return GetAverageRedColorPosition(db, offset, prevPos.x, prevPos.y, DebugIsOn);
                 }
             }
         }
@@ -212,7 +224,7 @@ internal class BobberFinder
         return (false, (0, 0));
     }
 
-    private (bool found, (int x, int y) pos) GetAverageRedColorPosition(DirectBitmap db, int offset, int x, int y)
+    private (bool found, (int x, int y) pos) GetAverageRedColorPosition(DirectBitmap db, int offset, int x, int y, bool debug)
     {
         var dotsFound = 0;
         var xSum = 0;
@@ -220,7 +232,7 @@ internal class BobberFinder
         for (var i = x - offset; i < x + offset; i++)
         {
             // checking twice the offset to get a better average in case of bobber diving
-            for (var j = y - 2 * offset; j < y + offset; j++)
+            for (var j = y - offset; j < y + offset + offset; j++)
             {
                 if (!CheckRangeOfCoords(db, i, j))
                 {
@@ -234,7 +246,7 @@ internal class BobberFinder
                     dotsFound++;
                     xSum += i;
                     ySum += j;
-                    if (DebugIsOn)
+                    if (debug)
                     {
                         db.SetPixel(i, j, Color.FromArgb(255, 255, 0, 0));
                     }
@@ -250,21 +262,54 @@ internal class BobberFinder
         var xAvg = xSum / dotsFound;
         var yAvg = ySum / dotsFound;
 
-        if (DebugIsOn)
+        DrawDebugBoxes(debug, db, offset, x, y, yAvg, xAvg);
+
+        return (true, (xAvg, yAvg));
+    }
+
+    private void DrawDebugBoxes(bool debugIsOn, DirectBitmap db, int offset, int x, int y, int yAvg, int xAvg)
+    {
+        if (debugIsOn)
         {
             for (int i = 0; i < db.Width; i++)
             {
                 db.SetPixel(i, yAvg, Color.FromArgb(255, 0, 255, 0));
                 db.SetPixel(i, y, Color.FromArgb(255, 0, 0, 255));
             }
+
             for (int i = 0; i < db.Height; i++)
             {
                 db.SetPixel(xAvg, i, Color.FromArgb(255, 0, 255, 0));
                 db.SetPixel(x, i, Color.FromArgb(255, 0, 0, 255));
             }
-        }
 
-        return (true, (xAvg, yAvg));
+            //drawing bobber zone region
+            for (var i = x - offset; i < x + offset; i++)
+            {
+                if (CheckRangeOfCoords(db, i, y - offset))
+                {
+                    db.SetPixel(i, y - offset, Color.FromArgb(255, 255, 0, 255));
+                }
+                if (CheckRangeOfCoords(db, i, y + offset + offset))
+                {
+                    db.SetPixel(i, y + offset + offset, Color.FromArgb(255, 255, 0, 255));
+                }
+            }
+
+            // checking twice the offset to get a better average in case of bobber diving
+            for (var j = y - offset; j < y + offset + offset; j++)
+            {
+                if (CheckRangeOfCoords(db, x - offset, j))
+                {
+                    db.SetPixel(x - offset, j, Color.FromArgb(255, 255, 0, 255));
+                }
+
+                if (CheckRangeOfCoords(db, x + offset, j))
+                {
+                    db.SetPixel(x + offset, j, Color.FromArgb(255, 255, 0, 255));
+                }
+            }
+        }
     }
 
     private static bool CheckRangeOfCoords(DirectBitmap db, int x, int y)
