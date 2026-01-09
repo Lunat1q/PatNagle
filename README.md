@@ -13,8 +13,9 @@
 ## Screenshot
 <img width="737" height="579" alt="image" src="https://github.com/user-attachments/assets/e41421cd-db26-4fae-a225-82e6f91562d3" />
 
-## Contact me:
-[Discord](https://discord.gg/mHrbVSuKRG)
+
+## 💬 Contacts
+[![Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/mHrbVSuKRG)
 
 
 ## ✨ Features
