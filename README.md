@@ -13,6 +13,9 @@
 ## Screenshot
 <img width="737" height="579" alt="image" src="https://github.com/user-attachments/assets/e41421cd-db26-4fae-a225-82e6f91562d3" />
 
+## Contact me:
+[Discord](https://discord.gg/mHrbVSuKRG)
+
 
 ## ✨ Features
 
