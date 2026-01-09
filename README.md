@@ -10,6 +10,10 @@
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/lunatiq)
 
+## Screenshot
+<img width="737" height="579" alt="image" src="https://github.com/user-attachments/assets/e41421cd-db26-4fae-a225-82e6f91562d3" />
+
+
 ## ✨ Features
 
 * **👁️ Visual Splash Detection:** Uses computer vision to detect the specific moment the bobber "dives," ensuring accurate catches without relying on sound.
