@@ -68,7 +68,7 @@ internal class BobberFinder
                 return;
             }
 
-            AppScreen.SaveSelectedRegion(settings.Region);
+            //AppScreen.SaveSelectedRegion(settings.Region);
             var found = false;
             (int x, int y) pos = (0, 0);
             var firstStamp = DateTime.Now;
