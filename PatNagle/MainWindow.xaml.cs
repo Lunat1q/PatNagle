@@ -7,7 +7,6 @@ using PatNagle.User;
 using System;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using TiqUtils.Wpf.UIBuilders;
@@ -148,9 +147,14 @@ public partial class MainWindow
     private void UpdateChart()
     {
         _context.UpdateSections();
-        var cartesianAxis = Chart.YAxes.First();
-        cartesianAxis.MinLimit = -AppSettings.Instance.BobberDiveThreshold - 5;
-        cartesianAxis.MaxLimit = 0;
+        Chart.YAxes = new[]
+        {
+            new Axis
+            {
+                MinLimit = -AppSettings.Instance.BobberDiveThreshold - 5,
+                MaxLimit = 0
+            }
+        };
     }
 
     private void Settings_Click(object sender, RoutedEventArgs e)
