@@ -1,27 +1,25 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Windows.Threading;
+using Avalonia.Threading;
 using LiveChartsCore;
 using LiveChartsCore.SkiaSharpView;
 using LiveChartsCore.SkiaSharpView.Painting;
 using LiveChartsCore.SkiaSharpView.Painting.Effects;
+using PatNagle.Common;
 using PatNagle.User;
 using SkiaSharp;
-using TiqUtils.Wpf.AbstractClasses;
 
 namespace PatNagle;
 
 internal class MainFormContext : Notified
 {
-    private readonly Dispatcher _dispatcher;
     private string _fishingStatus = "Unknown";
     private bool _running;
     private RectangularSection[] _sections = Array.Empty<RectangularSection>();
     private string _stats = "Not run";
 
-    public MainFormContext(Dispatcher dispatcher)
+    public MainFormContext()
     {
-        _dispatcher = dispatcher;
         Series = new ISeries[]
         {
             new LineSeries<int>
@@ -102,7 +100,7 @@ internal class MainFormContext : Notified
 
     public void AddDistance(int distance)
     {
-        _dispatcher.Invoke(() =>
+        Dispatcher.UIThread.Invoke(() =>
         {
             Items.Add(distance);
         });
@@ -133,7 +131,7 @@ internal class MainFormContext : Notified
 
     public void ClearAllDistance()
     {
-        _dispatcher.Invoke(() =>
+        Dispatcher.UIThread.Invoke(() =>
         {
             Items.Clear();
             OnPropertyChanged(nameof(Series));

@@ -1,10 +1,8 @@
-﻿using System.ComponentModel;
-using System.Runtime.InteropServices;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
+using System.ComponentModel;
+using Avalonia;
+using Avalonia.Input;
+using PatNagle.Common.AutoUI;
 using TiqUtils.Serialize;
-using TiqUtils.Wpf.UIBuilders;
 
 namespace PatNagle.User
 {
@@ -12,7 +10,7 @@ namespace PatNagle.User
     internal class AppSettings
     {
         public static AppSettings Instance { get; } = Load(Settings.Default.data);
-        
+
         public ScreenRegion Region { get; set; }
 
         [PropertyMember]
@@ -30,15 +28,15 @@ namespace PatNagle.User
         [PropertyMember]
         [SliderLimits(10, 40, 1, 1, 1)]
         public int MouseHookYOffset { get; set; } = 15;
-        
+
         [PropertyMember]
         [SliderLimits(20, 5000, 1, 1, 1)]
         public int ColorMaxDistance { get; set; } = 200;
-        
+
         [PropertyMember]
         [SliderLimits(1, 333, 1, 1, 1)]
         public int ThreadSleepTime { get; set; } = 33;
-        
+
         [PropertyMember]
         public Key CastKey { get; set; } = Key.F;
 

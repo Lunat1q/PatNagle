@@ -1,0 +1,14 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        x:Class="PatNagle.UI.RegionSelector"
+        mc:Ignorable="d"
+        WindowState="Maximized"
+        SystemDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="#3F00FF61"
+        Title="RegionSelector" Height="450" Width="800"
+        PointerPressed="Window_MouseDown" PointerReleased="Window_MouseUp" PointerMoved="Region_MouseMove">
+    <Canvas Name="Region"/>
+</Window>

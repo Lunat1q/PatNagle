@@ -1,22 +1,22 @@
-﻿using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView;
+using PatNagle.Common;
+using PatNagle.Common.AutoUI;
 using PatNagle.Logic;
 using PatNagle.Logic.Control;
 using PatNagle.Logic.Utils;
 using PatNagle.UI;
 using PatNagle.User;
 using System;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Windows;
-using System.Windows.Input;
-using TiqUtils.Wpf.UIBuilders;
+using Avalonia.Controls;
+using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.Threading;
+using HotKeyManager = PatNagle.Logic.Control.HotKeyManager;
 
 namespace PatNagle;
 
-/// <summary>
-///     Interaction logic for MainWindow.xaml
-/// </summary>
-public partial class MainWindow
+public partial class MainWindow : Window
 {
     private readonly MainFormContext _context;
     private BobberFinder _bobberF;
@@ -25,7 +25,7 @@ public partial class MainWindow
 
     public MainWindow()
     {
-        _context = new MainFormContext(this.Dispatcher);
+        _context = new MainFormContext();
         DataContext = _context;
         InitializeComponent();
         Chart.XAxes = new[]
@@ -39,7 +39,7 @@ public partial class MainWindow
         InitBobber();
     }
 
-    private void MetroWindow_Loaded(object sender, RoutedEventArgs e)
+    private void MetroWindow_Loaded(object? sender, RoutedEventArgs e)
     {
         _hotKeyMgr = new HotKeyManager(this);
         RegisterHotkeys();
@@ -47,24 +47,24 @@ public partial class MainWindow
 
     private void RegisterHotkeys()
     {
-        ModifierKeys modifierToggle = ModifierKeys.None;
+        KeyModifiers modifierToggle = KeyModifiers.None;
         if (AppSettings.Instance.StartStopWithControl)
         {
-            modifierToggle |= ModifierKeys.Control;
+            modifierToggle |= KeyModifiers.Control;
         }
         if (AppSettings.Instance.StartStopWithAlt)
         {
-            modifierToggle |= ModifierKeys.Alt;
+            modifierToggle |= KeyModifiers.Alt;
         }
 
-        ModifierKeys modifierTopmost = ModifierKeys.None;
+        KeyModifiers modifierTopmost = KeyModifiers.None;
         if (AppSettings.Instance.TopmostWithControl)
         {
-            modifierTopmost |= ModifierKeys.Control;
+            modifierTopmost |= KeyModifiers.Control;
         }
         if (AppSettings.Instance.TopmostWithAlt)
         {
-            modifierTopmost |= ModifierKeys.Alt;
+            modifierTopmost |= KeyModifiers.Alt;
         }
         _hotKeyMgr?.RegisterHotKey(modifierToggle, AppSettings.Instance.StartStopKey, RunToggle);
         _hotKeyMgr?.RegisterHotKey(modifierTopmost, AppSettings.Instance.TopmostKey, TopMostToggle);
@@ -75,13 +75,13 @@ public partial class MainWindow
         this.Topmost = !this.Topmost;
     }
 
-    private void RegionSelector_Click(object sender, RoutedEventArgs e)
+    private async void RegionSelector_Click(object? sender, RoutedEventArgs e)
     {
         var selector = new RegionSelector();
-        selector.ShowDialog();
+        await selector.ShowDialog(this);
     }
 
-    private void Run_Click(object sender, RoutedEventArgs e)
+    private void Run_Click(object? sender, RoutedEventArgs e)
     {
         RunToggle();
     }
@@ -109,18 +109,18 @@ public partial class MainWindow
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Type: {ex.GetType().Name}\r\nError: {ex.Message}\r\nStack: {ex.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            Dialogs.ShowError($"Type: {ex.GetType().Name}\r\nError: {ex.Message}\r\nStack: {ex.StackTrace}");
         }
     }
 
     private void CastDelegate()
     {
-        Dispatcher.Invoke(() => KeyboardControl.SimulatePress(AppSettings.Instance.CastKey));
+        Dispatcher.UIThread.Invoke(() => KeyboardControl.SimulatePress(AppSettings.Instance.CastKey));
     }
 
     private void HookDelegate()
     {
-        Dispatcher.Invoke(() =>
+        Dispatcher.UIThread.Invoke(() =>
         {
             MouseControl.RightClick(_wowWindow, _context.CurMouseX, _context.CurMouseY);
         });
@@ -129,7 +129,7 @@ public partial class MainWindow
 
     private void FoundDelegate(int x, int y)
     {
-        Dispatcher.Invoke(() =>
+        Dispatcher.UIThread.Invoke(() =>
         {
             var appPos = AppScreen.FromRegionToScreenPosition(x, y);
             _context.CurMouseX = appPos.x + AppSettings.Instance.MouseHookXOffset;
@@ -138,7 +138,7 @@ public partial class MainWindow
         });
     }
 
-    private void MetroWindow_Closing(object sender, CancelEventArgs e)
+    private void MetroWindow_Closing(object? sender, WindowClosingEventArgs e)
     {
         _bobberF.Stop();
         _hotKeyMgr?.Dispose();
@@ -157,15 +157,15 @@ public partial class MainWindow
         };
     }
 
-    private void Settings_Click(object sender, RoutedEventArgs e)
+    private async void Settings_Click(object? sender, RoutedEventArgs e)
     {
         var dialog = AppSettings.Instance.CreateAutoUISettingsDialog();
-        dialog.ShowDialog();
+        await dialog.ShowDialog(this);
         UpdateChart();
         AppSettings.Save();
     }
 
-    private void Debug_Click(object sender, RoutedEventArgs e)
+    private void Debug_Click(object? sender, RoutedEventArgs e)
     {
         new DebugVision(_bobberF).Show();
     }

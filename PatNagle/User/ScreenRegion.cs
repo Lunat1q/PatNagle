@@ -1,13 +1,13 @@
-﻿using System.Windows;
+using Avalonia;
 
 namespace PatNagle.User;
 
 internal class ScreenRegion
 {
     public Point LeftTop { get; set; }
-        
+
     public Point RightBottom { get; set; }
-        
+
     public double StartPercentageX { get; set; }
     public double EndPercentageX { get; set; }
     public double StartPercentageY { get; set; }

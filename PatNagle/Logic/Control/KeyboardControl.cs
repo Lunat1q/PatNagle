@@ -1,6 +1,7 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using System;
-using System.Windows.Input;
+using Avalonia.Input;
+using PatNagle.Common;
 
 namespace PatNagle.Logic.Control;
 
@@ -24,7 +25,7 @@ public class KeyboardControl
 
     public static void SimulatePress(Key instanceCastKey)
     {
-        var vk = (byte)KeyInterop.VirtualKeyFromKey(instanceCastKey);
+        var vk = (byte)KeyCodes.VirtualKeyFromKey(instanceCastKey);
         SimulateKeyPress(vk); // Press key
         System.Threading.Thread.Sleep(MouseControl.GetRandomDelay(300)); // some delay
         SimulateKeyRelease(vk); // Release key

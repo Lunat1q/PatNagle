@@ -1,25 +1,30 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows7.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <UseWPF>true</UseWPF>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <ApplicationIcon>PatNagle.ico</ApplicationIcon>
     <PackageIcon>PatNagle.ico</PackageIcon>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="PatNagle.ico" />
+    <AvaloniaResource Include="PatNagle.ico" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="LiveChartsCore.SkiaSharpView.WPF" Version="2.1.0-dev-798" />
-    <PackageReference Include="MahApps.Metro" Version="3.0.0-rc0529" />
+    <PackageReference Include="Avalonia" Version="12.0.0" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.0.0" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.0" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.0" />
+    <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.1.0-dev-798" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="11.0.0-preview.5.26302.115" />
     <PackageReference Include="TiqUtils" Version="1.0.1" />
-    <PackageReference Include="TiqUtils.Wpf" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,10 +33,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings1.settings</DependentUpon>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-	<Resource Include="PatNagle.ico" />
   </ItemGroup>
 
   <ItemGroup>

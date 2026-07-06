@@ -1,0 +1,45 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
+        x:Class="PatNagle.MainWindow"
+        mc:Ignorable="d"
+        MinHeight="550" MinWidth="400" Icon="/PatNagle.ico"
+        Title="Pat Nagle Wonder Lure" Height="550" Width="400"
+        Loaded="MetroWindow_Loaded" Closing="MetroWindow_Closing">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{Binding FishingStatus, StringFormat='Status: {0}'}" HorizontalAlignment="Center"/>
+            <TextBlock Grid.Column="1" Text="{Binding Stats}" HorizontalAlignment="Center"/>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{Binding Running, StringFormat='Is Running: {0}'}" HorizontalAlignment="Center"/>
+        </Grid>
+        <lvc:CartesianChart Grid.Row="2" Name="Chart"
+                            Series="{Binding Series}"
+                            Sections="{Binding Sections}"
+                            TooltipPosition="Hidden">
+        </lvc:CartesianChart>
+        <StackPanel Grid.Row="3">
+            <Button Content="Region selector" Height="30" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="RegionSelector_Click"/>
+            <Button Content="Settings" Height="30" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="Settings_Click"/>
+            <Button Content="Run" Height="30" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="Run_Click"/>
+            <Button Content="Debug" Height="30" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="Debug_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

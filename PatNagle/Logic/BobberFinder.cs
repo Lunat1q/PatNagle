@@ -1,4 +1,5 @@
-﻿using PatNagle.Logic.Control;
+﻿using PatNagle.Common;
+using PatNagle.Logic.Control;
 using PatNagle.Logic.Image;
 using PatNagle.Logic.Utils;
 using PatNagle.User;
@@ -6,7 +7,6 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
-using System.Windows;
 
 namespace PatNagle.Logic;
 
@@ -166,7 +166,7 @@ internal class BobberFinder
         catch (Exception e)
         {
             context.Running = false;
-            MessageBox.Show($"Type: {e.GetType().Name}\r\nError: {e.Message}\r\nStack: {e.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            Dialogs.ShowError($"Type: {e.GetType().Name}\r\nError: {e.Message}\r\nStack: {e.StackTrace}");
             Debug.WriteLine(e);
             throw;
         }
