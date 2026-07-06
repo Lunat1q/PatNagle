@@ -96,15 +96,21 @@ public partial class MainWindow
 
     private void RunToggle()
     {
-
-        if (!_context.Running)
+        try
         {
-            _bobberF.Start();
-            _wowWindow = AppHelper.FindWowWindow();
+            if (!_context.Running)
+            {
+                _bobberF.Start();
+                _wowWindow = AppHelper.FindWowWindow();
+            }
+            else
+            {
+                _bobberF.Stop();
+            }
         }
-        else
+        catch (Exception ex)
         {
-            _bobberF.Stop();
+            MessageBox.Show($"Type: {ex.GetType().Name}\r\nError: {ex.Message}\r\nStack: {ex.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 

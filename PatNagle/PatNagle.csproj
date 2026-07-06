@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -31,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-	<Resource Include="PatNagle.ico"/>
+	<Resource Include="PatNagle.ico" />
   </ItemGroup>
 
   <ItemGroup>

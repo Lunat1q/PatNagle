@@ -31,10 +31,7 @@ internal class BobberFinder
         _settings = settings;
         _actions = actions;
         _context = context;
-        this.Done = true;
     }
-
-    public bool Done { get; private set; }
 
     public event PictureUpdated? PictureChanged;
     public event NewBobberLocation? BobberFound;
@@ -49,7 +46,6 @@ internal class BobberFinder
 
     public void Stop()
     {
-        Done = true;
         _context.Running = false;
         _cts?.Cancel();
     }
@@ -57,24 +53,15 @@ internal class BobberFinder
     private void Finder(AppSettings settings,
                         BobberActions actions,
                         MainFormContext context,
-                        CancellationToken ctsToken)
+                        CancellationToken cancellationToken)
     {
         try
         {
             var allProcesses = Process.GetProcesses();
-            Process? wowProcess = null;
-            foreach (var p in allProcesses)
-            {
-                if (p.ProcessName.Equals("Wow", StringComparison.OrdinalIgnoreCase))
-                {
-                    wowProcess = p;
-                    break;
-                }
-            }
+            var wowProcess = AppHelper.FindWowWindow();
 
-            if (wowProcess == null)
+            if (wowProcess == IntPtr.Zero)
             {
-                Done = true;
                 Debug.WriteLine("No WoW window!");
                 return;
             }
@@ -91,7 +78,7 @@ internal class BobberFinder
             var iteration = 0;
 
 
-            while (!ctsToken.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 using (var db = AppScreen.GetSelectedRegion(settings.Region))
                 {
@@ -127,13 +114,13 @@ internal class BobberFinder
                                     context.AddDistance(-(int)dist);
                                 }
 
-                                Thread.Sleep(MouseControl.GetRandomDelay(300));
+                                Thread.Sleep(MouseControl.GetRandomDelay(500));
                                 actions.HookDelegate();
                                 context.FishingStatus = "Hooked!";
                                 hooks++;
                                 UpdateStats(context, casts, hooks, fails);
                                 Thread.Sleep(MouseControl.GetRandomDelay(2500));
-                                if (ctsToken.IsCancellationRequested)
+                                if (cancellationToken.IsCancellationRequested)
                                 {
                                     break;
                                 }
@@ -176,7 +163,6 @@ internal class BobberFinder
         }
         catch (Exception e)
         {
-            Done = false;
             context.Running = false;
             Debug.WriteLine(e);
             throw;
