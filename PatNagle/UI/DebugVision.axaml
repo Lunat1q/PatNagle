@@ -5,9 +5,16 @@
         x:Class="PatNagle.UI.DebugVision"
         mc:Ignorable="d" Topmost="True"
         Title="DebugVision" Height="450" Width="800" Closing="Window_Closing">
-    <Grid RowDefinitions="Auto,Auto,*">
+    <Grid RowDefinitions="Auto,Auto,Auto,*">
         <TextBlock Name="LocationText"/>
         <TextBlock Name="ResolutionText" Grid.Row="1"/>
-        <Image Grid.Row="2" Name="ImageView"/>
+        <Border Grid.Row="2" Margin="0,4" Padding="6"
+                Background="#22808080" CornerRadius="4">
+            <StackPanel>
+                <TextBlock Text="Suggestions" FontWeight="Bold" Margin="0,0,0,2"/>
+                <TextBlock Name="SuggestionsText" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+        <Image Grid.Row="3" Name="ImageView"/>
     </Grid>
 </Window>

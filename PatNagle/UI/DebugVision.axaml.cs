@@ -38,6 +38,8 @@ public partial class DebugVision : Window
 
     private void LiveTimerOnTick(object? sender, EventArgs e)
     {
+        SuggestionsText.Text = string.Join(Environment.NewLine, _finder.Diagnostics.BuildSuggestions(AppSettings.Instance));
+
         // Finder frames are fresher than 250ms while it runs; only self-capture when stale.
         if ((DateTime.UtcNow - _lastFrameUtc).TotalMilliseconds < 250)
         {

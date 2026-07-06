@@ -25,7 +25,7 @@ public static class SettingsUiBuilder
     {
         var type = settings.GetType();
 
-        var panel = new StackPanel { Margin = new Thickness(12), Spacing = 8 };
+        var panel = new StackPanel { Margin = new Thickness(10, 8, 10, 8), Spacing = 2 };
 
         var members = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(p => p.GetCustomAttribute<PropertyMemberAttribute>() != null && p.CanRead && p.CanWrite)
@@ -45,7 +45,7 @@ public static class SettingsUiBuilder
                 {
                     Text = group.Key,
                     FontWeight = FontWeight.Bold,
-                    Margin = new Thickness(0, 8, 0, 2)
+                    Margin = new Thickness(0, 6, 0, 1)
                 });
             }
 
@@ -67,20 +67,21 @@ public static class SettingsUiBuilder
         {
             Content = "Close",
             HorizontalAlignment = HorizontalAlignment.Right,
-            Margin = new Thickness(0, 12, 0, 0)
+            Margin = new Thickness(10, 6, 10, 8)
         };
 
+        // No ScrollViewer: the window sizes to fit so every setting is visible at once.
         var root = new DockPanel();
         DockPanel.SetDock(closeButton, Dock.Bottom);
         root.Children.Add(closeButton);
-        root.Children.Add(new ScrollViewer { Content = panel });
+        root.Children.Add(panel);
 
         var window = new Window
         {
             Title = type.GetCustomAttribute<DisplayNameAttribute>()?.DisplayName ?? "Settings",
-            Width = 380,
+            Width = 360,
             SizeToContent = SizeToContent.Height,
-            MaxHeight = 700,
+            CanResize = false,
             WindowStartupLocation = WindowStartupLocation.CenterOwner,
             Content = root
         };
@@ -91,22 +92,32 @@ public static class SettingsUiBuilder
 
     private static Control? BuildRow(object owner, PropertyInfo prop)
     {
-        var label = new TextBlock
-        {
-            Text = GetLabel(prop),
-            VerticalAlignment = VerticalAlignment.Center
-        };
-
         var editor = BuildEditor(owner, prop);
         if (editor == null)
         {
             return null;
         }
 
-        var stack = new StackPanel { Spacing = 2 };
-        stack.Children.Add(label);
-        stack.Children.Add(editor);
-        return stack;
+        var label = new TextBlock
+        {
+            Text = GetLabel(prop),
+            VerticalAlignment = VerticalAlignment.Center,
+            FontSize = 12,
+            TextTrimming = Avalonia.Media.TextTrimming.None,
+            Margin = new Thickness(0, 0, 8, 0)
+        };
+
+        // Label left, editor right on a single line.
+        var grid = new Grid
+        {
+            ColumnDefinitions = new ColumnDefinitions("150,*"),
+            Margin = new Thickness(0, 1, 0, 1)
+        };
+        Grid.SetColumn(label, 0);
+        Grid.SetColumn(editor, 1);
+        grid.Children.Add(label);
+        grid.Children.Add(editor);
+        return grid;
     }
 
     private static Control? BuildEditor(object owner, PropertyInfo prop)
@@ -115,7 +126,13 @@ public static class SettingsUiBuilder
 
         if (t == typeof(bool))
         {
-            var cb = new CheckBox { IsChecked = (bool)(prop.GetValue(owner) ?? false) };
+            var cb = new CheckBox
+            {
+                IsChecked = (bool)(prop.GetValue(owner) ?? false),
+                VerticalAlignment = VerticalAlignment.Center,
+                MinHeight = 0,
+                Padding = new Thickness(0)
+            };
             cb.IsCheckedChanged += (_, _) => prop.SetValue(owner, cb.IsChecked ?? false);
             return cb;
         }
@@ -160,8 +177,19 @@ public static class SettingsUiBuilder
             SmallChange = limits?.TickFrequency ?? 1,
             LargeChange = limits?.LargeChange ?? 1,
             IsSnapToTickEnabled = t == typeof(int),
-            Value = current
+            Value = current,
+            MinHeight = 0,
+            VerticalAlignment = VerticalAlignment.Center
         };
+
+        // Compact the FluentTheme slider via its own theme resources so the round thumb
+        // stays intact (not clipped or distorted): shrink the track container, drop the
+        // pre/post padding rows, and size the thumb to fit.
+        slider.Resources["SliderHorizontalHeight"] = 22.0;
+        slider.Resources["SliderHorizontalThumbWidth"] = 18.0;
+        slider.Resources["SliderHorizontalThumbHeight"] = 18.0;
+        slider.Resources["SliderPreContentMargin"] = new GridLength(0);
+        slider.Resources["SliderPostContentMargin"] = new GridLength(0);
 
         var valueText = new TextBlock
         {

@@ -37,8 +37,11 @@ internal class BobberFinder
     public event PictureUpdated? PictureChanged;
     public event NewBobberLocation? BobberFound;
 
+    public FinderDiagnostics Diagnostics { get; } = new();
+
     public void Start()
     {
+        Diagnostics.Reset();
         _cts = new CancellationTokenSource();
         var ts = new ThreadStart(() => Finder(_settings, _actions, _context, _cts.Token));
         _runner = new Thread(ts);
@@ -85,6 +88,12 @@ internal class BobberFinder
                 using (var db = AppScreen.GetSelectedRegion(settings.Region))
                 {
                     OnPictureChanged(db.Bitmap);
+                    if (DebugIsOn)
+                    {
+                        // Sample how much of the whole frame matches the target colour (downsampled).
+                        var (matched, total) = CountFrameMatches(db, 4);
+                        Diagnostics.OnFrameSample(matched, total);
+                    }
                     var dot = found
                         ? GetAverageRedColorPosition(db, offset, pos.x, pos.y, DebugIsOn)
                         : FindFirstRedDot(db, offset);
@@ -102,6 +111,7 @@ internal class BobberFinder
                         else
                         {
                             var dist = CalculateYDistance(dot, pos);
+                            Diagnostics.OnDive(dist);
                             context.FishingStatus = "Waiting...";
                             var posRecorder = 5 + 50 / settings.ThreadSleepTime;
                             if (iteration % posRecorder == 0)
@@ -120,6 +130,7 @@ internal class BobberFinder
                                 actions.HookDelegate();
                                 context.FishingStatus = "Hooked!";
                                 hooks++;
+                                Diagnostics.OnAttemptEnd(true);
                                 UpdateStats(context, casts, hooks, fails);
                                 Thread.Sleep(MouseControl.GetRandomDelay(2500));
                                 if (cancellationToken.IsCancellationRequested)
@@ -144,6 +155,7 @@ internal class BobberFinder
                     {
                         found = false;
                         firstStamp = DateTime.Now;
+                        Diagnostics.OnAttemptEnd(false);
                         actions.HookDelegate();
                         Thread.Sleep(MouseControl.GetRandomDelay(1500));
                         actions.CastDelegate();
@@ -243,6 +255,8 @@ internal class BobberFinder
             }
         }
 
+        Diagnostics.OnTrackScan(dotsFound);
+
         if (dotsFound == 0)
         {
             return (false, (0, 0));
@@ -304,6 +318,25 @@ internal class BobberFinder
     private static bool CheckRangeOfCoords(DirectBitmap db, int x, int y)
     {
         return y >= 0 && y < db.Height && x >= 0 && x < db.Width;
+    }
+
+    private (int matched, int total) CountFrameMatches(DirectBitmap db, int step)
+    {
+        var matched = 0;
+        var total = 0;
+        for (var i = 0; i < db.Width; i += step)
+        {
+            for (var j = 0; j < db.Height; j += step)
+            {
+                total++;
+                if (db.GetPixel(i, j).GetDiff(_targetColor) < _settings.ColorMaxDistance)
+                {
+                    matched++;
+                }
+            }
+        }
+
+        return (matched, total);
     }
 
     protected virtual void OnPictureChanged(Bitmap i)
