@@ -17,6 +17,7 @@ internal sealed class FinderDiagnostics
     // ponytail: heuristic cut-offs, tune here. Frame ratio is fraction of the whole
     // capture that matches the target colour; a real feather is well under 1%.
     private const double TooLooseFrameRatio = 0.05;
+    private const double NoMatchFrameRatio = 0.001;
     private const int WeakTrackDots = 3;
     private const int MinAttempts = 2;
     private const double HighFailRate = 0.4;
@@ -126,6 +127,15 @@ internal sealed class FinderDiagnostics
             {
                 lines.Add($"Too much of the screen matches ({ratio:P1}) - many false clusters. " +
                           $"Reduce Color Max Distance (now {color}, try ~{Suggest(color * 0.5, 20, 5000)}).");
+                return;
+            }
+
+            // Nothing at all matches AND we never once locked on -> threshold too tight
+            // (or the target colour is off). Distinct from a bobber that was tracked then lost.
+            if (ratio < NoMatchFrameRatio && dots.Length == 0)
+            {
+                lines.Add($"No feather color detected anywhere on screen. Color Max Distance may be too low - " +
+                          $"increase it (now {color}, try ~{Suggest(color * 2, 20, 5000)}).");
                 return;
             }
         }

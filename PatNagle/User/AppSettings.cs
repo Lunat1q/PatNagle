@@ -19,7 +19,7 @@ namespace PatNagle.User
 
         [PropertyMember]
         [SliderLimits(15, 40, 1, 1, 1)]
-        public int BobberDiveThreshold { get; set; } = 20;
+        public int BobberDiveThreshold { get; set; } = 16;
 
         [PropertyMember]
         [SliderLimits(20, 80, 1, 1, 1)]
@@ -31,14 +31,14 @@ namespace PatNagle.User
 
         [PropertyMember]
         [SliderLimits(20, 5000, 1, 1, 1)]
-        public int ColorMaxDistance { get; set; } = 200;
+        public int ColorMaxDistance { get; set; } = 500;
 
         [PropertyMember]
         [SliderLimits(1, 333, 1, 1, 1)]
         public int ThreadSleepTime { get; set; } = 33;
 
         [PropertyMember]
-        public Key CastKey { get; set; } = Key.F;
+        public Key CastKey { get; set; } = Key.E;
 
         [PropertyMember]
         [PropertyGroup("Start/Stop")]

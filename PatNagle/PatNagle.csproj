@@ -17,12 +17,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="12.0.0" />
-    <PackageReference Include="Avalonia.Desktop" Version="12.0.0" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.0" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.0" />
+    <PackageReference Include="Avalonia" Version="12.0.5" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.0.5" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.5" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.5" />
     <PackageReference Include="LiveChartsCore.SkiaSharpView.Avalonia" Version="2.1.0-dev-798" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.9" />
     <PackageReference Include="System.Drawing.Common" Version="11.0.0-preview.5.26302.115" />
     <PackageReference Include="TiqUtils" Version="1.0.1" />
   </ItemGroup>
@@ -45,5 +45,36 @@
   <ItemGroup>
     <Folder Include="Resources\" />
   </ItemGroup>
+
+  <!-- Native asset packages (SkiaSharp, HarfBuzz) ship huge .pdb symbol files.
+       Keep them out of BOTH the build output and the published folder. -->
+  <Target Name="StripNativePdbFromOutput" BeforeTargets="CopyFilesToOutputDirectory">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)" Condition="'%(Extension)' == '.pdb'" />
+      <RuntimeTargetsCopyLocalItems Remove="@(RuntimeTargetsCopyLocalItems)" Condition="'%(Extension)' == '.pdb'" />
+      <NativeCopyLocalItems Remove="@(NativeCopyLocalItems)" Condition="'%(Extension)' == '.pdb'" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="StripNativePdbFromPublish" AfterTargets="ComputeFilesToPublish">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(Extension)' == '.pdb'" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Belt-and-suspenders: delete any .pdb that still slipped through. -->
+  <Target Name="DeleteLeftoverPdbFromOutput" AfterTargets="Build">
+    <ItemGroup>
+      <_LeftoverOutputPdb Include="$(OutDir)*.pdb" Exclude="$(OutDir)$(AssemblyName).pdb" />
+    </ItemGroup>
+    <Delete Files="@(_LeftoverOutputPdb)" />
+  </Target>
+
+  <Target Name="DeleteLeftoverPdbFromPublish" AfterTargets="Publish">
+    <ItemGroup>
+      <_LeftoverPublishPdb Include="$(PublishDir)*.pdb" />
+    </ItemGroup>
+    <Delete Files="@(_LeftoverPublishPdb)" />
+  </Target>
 
 </Project>

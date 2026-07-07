@@ -23,7 +23,9 @@ internal class BobberFinder
     private Thread? _runner;
 
     public bool DebugIsOn = false;
-    
+
+    private readonly MouseKeeper _mouse = new();
+
     //debug section
     private const bool DisableCatch = false;
 
@@ -80,6 +82,7 @@ internal class BobberFinder
             var hooks = 0;
             var fails = 0;
             context.Running = true;
+            _mouse.Reset();
             var iteration = 0;
 
 
@@ -104,6 +107,7 @@ internal class BobberFinder
                             found = true;
                             pos = dot.pos;
                             actions.FoundDelegate(pos.x, pos.y);
+                            _mouse.NotifyPlaced(context.CurMouseX, context.CurMouseY);
                             firstStamp = DateTime.Now;
                             this.OnBobberFound($"x: {pos.x} y: {pos.y}");
                             context.AddDistance(0);
@@ -127,6 +131,7 @@ internal class BobberFinder
                                 }
 
                                 Thread.Sleep(MouseControl.GetRandomDelay(500));
+                                _mouse.EnsureAt(context.CurMouseX, context.CurMouseY);
                                 actions.HookDelegate();
                                 context.FishingStatus = "Hooked!";
                                 hooks++;
@@ -138,6 +143,7 @@ internal class BobberFinder
                                     break;
                                 }
                                 found = false;
+                                _mouse.Reset();
                                 context.ClearAllDistance();
                                 actions.CastDelegate();
                                 context.FishingStatus = "Casting...";
@@ -156,7 +162,9 @@ internal class BobberFinder
                         found = false;
                         firstStamp = DateTime.Now;
                         Diagnostics.OnAttemptEnd(false);
+                        _mouse.EnsureAt(context.CurMouseX, context.CurMouseY);
                         actions.HookDelegate();
+                        _mouse.Reset();
                         Thread.Sleep(MouseControl.GetRandomDelay(1500));
                         actions.CastDelegate();
                         context.FishingStatus = "Re-Casting...";
@@ -165,6 +173,12 @@ internal class BobberFinder
                         fails++;
                         casts++;
                         iteration = 0;
+                    }
+
+                    // Keep the cursor parked on the bobber, yielding to active user movement.
+                    if (found)
+                    {
+                        _mouse.Tick(context.CurMouseX, context.CurMouseY);
                     }
 
                     iteration++;
