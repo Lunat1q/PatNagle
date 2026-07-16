@@ -84,6 +84,23 @@ internal class BobberFinder
             context.Running = true;
             _mouse.Reset();
             var iteration = 0;
+            var lastPeriodic = DateTime.Now;
+
+            // Press the configured key between attempts once the delay elapses, then wait so the
+            // in-game action finishes before the next cast. Never called mid-cast/mid-track.
+            void TryPeriodicPress()
+            {
+                if (!settings.PeriodicKeyEnabled ||
+                    lastPeriodic.AddMinutes(settings.PeriodicDelayMinutes) > DateTime.Now)
+                {
+                    return;
+                }
+
+                context.FishingStatus = "Periodic key...";
+                actions.PeriodicDelegate();
+                Thread.Sleep(settings.PeriodicWaitSeconds * 1000);
+                lastPeriodic = DateTime.Now;
+            }
 
 
             while (!cancellationToken.IsCancellationRequested)
@@ -145,6 +162,7 @@ internal class BobberFinder
                                 found = false;
                                 _mouse.Reset();
                                 context.ClearAllDistance();
+                                TryPeriodicPress();
                                 actions.CastDelegate();
                                 context.FishingStatus = "Casting...";
                                 this.OnBobberFound("???");
@@ -166,6 +184,7 @@ internal class BobberFinder
                         actions.HookDelegate();
                         _mouse.Reset();
                         Thread.Sleep(MouseControl.GetRandomDelay(1500));
+                        TryPeriodicPress();
                         actions.CastDelegate();
                         context.FishingStatus = "Re-Casting...";
                         this.OnBobberFound("???");

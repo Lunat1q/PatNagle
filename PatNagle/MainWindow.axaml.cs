@@ -89,7 +89,7 @@ public partial class MainWindow : Window
     [MemberNotNull(nameof(_bobberF))]
     private void InitBobber()
     {
-        var bobberActions = new BobberActions(FoundDelegate, HookDelegate, CastDelegate);
+        var bobberActions = new BobberActions(FoundDelegate, HookDelegate, CastDelegate, PeriodicDelegate);
         _bobberF = new BobberFinder(AppSettings.Instance, bobberActions, _context);
     }
 
@@ -116,6 +116,11 @@ public partial class MainWindow : Window
     private void CastDelegate()
     {
         Dispatcher.UIThread.Invoke(() => KeyboardControl.SimulatePress(AppSettings.Instance.CastKey));
+    }
+
+    private void PeriodicDelegate()
+    {
+        Dispatcher.UIThread.Invoke(() => KeyboardControl.SimulatePress(AppSettings.Instance.PeriodicKey));
     }
 
     private void HookDelegate()

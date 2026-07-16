@@ -55,6 +55,28 @@ namespace PatNagle.User
         public bool StartStopWithControl { get; set; } = true;
 
         [PropertyMember]
+        [DisplayName("Enabled")]
+        [PropertyGroup("Periodic Key")]
+        public bool PeriodicKeyEnabled { get; set; }
+
+        [PropertyMember]
+        [DisplayName("Key")]
+        [PropertyGroup("Periodic Key")]
+        public Key PeriodicKey { get; set; } = Key.D1;
+
+        [PropertyMember]
+        [DisplayName("Delay (min)")]
+        [PropertyGroup("Periodic Key")]
+        [SliderLimits(1, 10, 1, 1, 1)]
+        public int PeriodicDelayMinutes { get; set; } = 5;
+
+        [PropertyMember]
+        [DisplayName("Wait (sec)")]
+        [PropertyGroup("Periodic Key")]
+        [SliderLimits(1, 10, 1, 1, 1)]
+        public int PeriodicWaitSeconds { get; set; } = 3;
+
+        [PropertyMember]
         [PropertyGroup("Topmost")]
         public Key TopmostKey { get; set; } = Key.T;
 
