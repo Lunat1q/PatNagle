@@ -6,6 +6,8 @@
 
 ![Language](https://img.shields.io/badge/language-C%23-blue.svg) ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg) ![Status](https://img.shields.io/badge/status-active-success.svg)
 
+Current status: <font color="green">**UNDETECTED**</font>
+
 ## Coffee
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/lunatiq)
