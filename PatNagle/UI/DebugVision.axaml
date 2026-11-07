@@ -5,7 +5,7 @@
         x:Class="PatNagle.UI.DebugVision"
         mc:Ignorable="d" Topmost="True"
         Title="DebugVision" Height="450" Width="800" Closing="Window_Closing">
-    <Grid RowDefinitions="Auto,Auto,Auto,*">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*">
         <TextBlock Name="LocationText"/>
         <TextBlock Name="ResolutionText" Grid.Row="1"/>
         <Border Grid.Row="2" Margin="0,4" Padding="6"
@@ -15,6 +15,44 @@
                 <TextBlock Name="SuggestionsText" TextWrapping="Wrap"/>
             </StackPanel>
         </Border>
-        <Image Grid.Row="3" Name="ImageView"/>
+        <!-- Legend: colours drawn by BobberFinder (DrawDebugBoxes / DrawCircle). -->
+        <WrapPanel Grid.Row="3" Margin="0,0,0,4">
+            <WrapPanel.Styles>
+                <Style Selector="StackPanel">
+                    <Setter Property="Orientation" Value="Horizontal"/>
+                    <Setter Property="Margin" Value="0,2,14,2"/>
+                    <Setter Property="Spacing" Value="5"/>
+                </Style>
+                <Style Selector="Border">
+                    <Setter Property="Width" Value="12"/>
+                    <Setter Property="Height" Value="12"/>
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                </Style>
+                <Style Selector="TextBlock">
+                    <Setter Property="VerticalAlignment" Value="Center"/>
+                </Style>
+            </WrapPanel.Styles>
+            <StackPanel ToolTip.Tip="Pixels matching the bobber colour (within Color Max Distance).">
+                <Border Background="#FF0000"/>
+                <TextBlock Text="Matched bobber pixels"/>
+            </StackPanel>
+            <StackPanel ToolTip.Tip="Where the bobber was locked after the cast; scan zone is centred here.">
+                <Border Background="#0000FF"/>
+                <TextBlock Text="Locked position (scan centre)"/>
+            </StackPanel>
+            <StackPanel ToolTip.Tip="Average of matched pixels this frame. Vertical gap to blue = dive; hooks above Bobber Dive Threshold.">
+                <Border Background="#00FF00"/>
+                <TextBlock Text="Current bobber centre"/>
+            </StackPanel>
+            <StackPanel ToolTip.Tip="Area searched for bobber pixels (Bobber Zone Range).">
+                <Border Background="Transparent" BorderBrush="#FF00FF" BorderThickness="2"/>
+                <TextBlock Text="Scan zone"/>
+            </StackPanel>
+            <StackPanel ToolTip.Tip="Locked position + Mouse Hook X/Y offsets: where the cursor goes and the hook click lands.">
+                <Ellipse Width="12" Height="12" VerticalAlignment="Center" Stroke="#A020F0" StrokeThickness="2"/>
+                <TextBlock Text="Hook position"/>
+            </StackPanel>
+        </WrapPanel>
+        <Image Grid.Row="4" Name="ImageView"/>
     </Grid>
 </Window>
