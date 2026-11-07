@@ -173,6 +173,13 @@ internal class BobberFinder
                         }
                     }
 
+                    if (DebugIsOn && found)
+                    {
+                        // Where the cursor/hook lands: locked bobber position + configured hook offsets.
+                        DrawCircle(db, pos.x + settings.MouseHookXOffset, pos.y + settings.MouseHookYOffset, 8,
+                            Color.FromArgb(255, 160, 32, 240));
+                    }
+
                     OnPictureChanged(db.Bitmap);
 
                     if (firstStamp.AddSeconds(30) < DateTime.Now && !DisableCatch)
@@ -343,6 +350,22 @@ internal class BobberFinder
                 if (CheckRangeOfCoords(db, x + offset, j))
                 {
                     db.SetPixel(x + offset, j, Color.FromArgb(255, 255, 0, 255));
+                }
+            }
+        }
+    }
+
+    private static void DrawCircle(DirectBitmap db, int cx, int cy, int r, Color color)
+    {
+        // 2px ring: pixels whose distance from the centre falls within [r-1, r+1).
+        for (var i = cx - r - 1; i <= cx + r + 1; i++)
+        {
+            for (var j = cy - r - 1; j <= cy + r + 1; j++)
+            {
+                var d = Math.Sqrt((i - cx) * (i - cx) + (j - cy) * (j - cy));
+                if (d >= r - 1 && d < r + 1 && CheckRangeOfCoords(db, i, j))
+                {
+                    db.SetPixel(i, j, color);
                 }
             }
         }
