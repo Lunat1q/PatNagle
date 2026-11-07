@@ -77,7 +77,14 @@ namespace PatNagle.Logic.Utils
 
         public static (int x, int y) FromRegionToScreenPosition(int x, int y)
         {
-            return ((int)AppSettings.Instance.Region!.LeftTop.X + x, (int)AppSettings.Instance.Region.LeftTop.Y + y);
+            // LeftTop is in Avalonia DIPs, but the captured bitmap is physical pixels.
+            // Derive the origin exactly like ScreenCapture.CaptureWindow does for the BitBlt source.
+            var r = AppSettings.Instance.Region!;
+            var rect = new ScreenCapture.User32.RECT();
+            ScreenCapture.User32.GetWindowRect(ScreenCapture.User32.GetDesktopWindow(), ref rect);
+            var originX = (int)(r.StartPercentageX * (rect.right - rect.left) / 100);
+            var originY = (int)(r.StartPercentageY * (rect.bottom - rect.top) / 100);
+            return (rect.left + originX + x, rect.top + originY + y);
         }
     }
 
