@@ -1,8 +1,9 @@
 # 🎣 PatNagle
 
 **PatNagle** is an external, purely visual fishing bot for **World of Warcraft**. It uses advanced pixel scanning to locate your bobber and detect the specific "splash" animation (bobber dive) without reading game memory.
-
 > *"I could wait and fish all day!"*
+
+## Works in **WoW: Forever**!
 
 ### Current status: <font color="green">**UNDETECTED**</font>
 ![Language](https://img.shields.io/badge/language-C%23-blue.svg) ![Platform](https://img.shields.io/badge/platform-Windows-lightgrey.svg) ![Status](https://img.shields.io/badge/status-active-success.svg)
