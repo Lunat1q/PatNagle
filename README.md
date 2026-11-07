@@ -75,4 +75,4 @@ You can bind keys using the dropdowns and modifier checkboxes (`Alt`, `Control`)
 ---
 
 ## 📄 License
-Distributed under the MIT License.
+Distributed under the [PolyForm Noncommercial License 1.0.0](LICENSE.md). Free for personal and other non-commercial use. Selling it or using it commercially is not allowed.
